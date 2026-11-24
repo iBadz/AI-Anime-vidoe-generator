@@ -1,0 +1,40 @@
+
+name: DeepSeek API Connection Test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-deepseek:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test DeepSeek API
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          set -e
+
+          if [ -z "$DEEPSEEK_API_KEY" ]; then
+            echo "DeepSeek API key is missing."
+            exit 1
+          fi
+
+          response=$(curl -sS --fail-with-body \
+            https://api.deepseek.com/chat/completions \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $DEEPSEEK_API_KEY" \
+            -d '{
+              "model": "deepseek-chat",
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Reply with: DeepSeek connection successful."
+                }
+              ],
+              "stream": false
+            }')
+
+          echo "$response" | jq -r '.choices[0].message.content'
